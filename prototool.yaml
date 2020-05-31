@@ -1,0 +1,14 @@
+protoc:
+  version: 3.11.4
+  includes:
+    - proto/
+lint:
+  group: uber2
+generate:
+  go_options:
+    import_path: github.com/Henrod/chat-example/protogen
+  plugins:
+    - name: go
+      type: go
+      flags: plugins=grpc
+      output: protogen
