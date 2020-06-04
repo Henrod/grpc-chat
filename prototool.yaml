@@ -6,7 +6,7 @@ lint:
   group: uber2
 generate:
   go_options:
-    import_path: github.com/Henrod/chat-example/protogen
+    import_path: github.com/Henrod/chat-example-2/protogen
   plugins:
     - name: go
       type: go
