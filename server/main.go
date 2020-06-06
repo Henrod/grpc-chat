@@ -4,15 +4,15 @@ import (
 	"context"
 	"log"
 	"net"
+	"net/http"
 	"time"
 
+	pb "github.com/Henrod/chat-example-2/protogen"
 	"github.com/golang/protobuf/ptypes"
-
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	pb "github.com/Henrod/chat-example-2/protogen"
-	"google.golang.org/grpc"
 )
 
 type FeedAPI struct {
@@ -54,6 +54,26 @@ func (f *FeedAPI) ListMessages(
 	return &pb.ListMessagesResponse{Messages: messages}, nil
 }
 
+type HenrodAPI struct{}
+
+func (h *HenrodAPI) Echo(context.Context, *pb.EchoRequest) (*pb.EchoResponse, error) {
+	return &pb.EchoResponse{}, nil
+}
+
+func startHTTPServer() error {
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	mux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	if err := pb.RegisterFeedAPIHandlerFromEndpoint(ctx, mux, "localhost:8000", opts); err != nil {
+		return err
+	}
+
+	return http.ListenAndServe("localhost:8001", mux)
+}
+
 func main() {
 	lis, err := net.Listen("tcp", "localhost:8000")
 	if err != nil {
@@ -62,9 +82,17 @@ func main() {
 
 	s := grpc.NewServer(grpc.UnaryInterceptor(Metrics))
 	pb.RegisterFeedAPIServer(s, NewFeedAPI())
+	pb.RegisterHenrodAPIServer(s, &HenrodAPI{})
 
-	log.Print("listening at localhost:8000")
-	if err = s.Serve(lis); err != nil {
+	go func() {
+		log.Print("listening gRPC at localhost:8000")
+		if err = s.Serve(lis); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	log.Print("listening HTTP at localhost:8001")
+	if err = startHTTPServer(); err != nil {
 		log.Fatal(err)
 	}
 }

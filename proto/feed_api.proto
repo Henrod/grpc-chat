@@ -3,6 +3,7 @@ syntax = "proto3";
 package proto.v1;
 
 import "message.proto";
+import "google/api/annotations.proto";
 
 option csharp_namespace = "Proto.V1";
 option go_package = "protov1";
@@ -13,9 +14,18 @@ option objc_class_prefix = "PXX";
 option php_namespace = "Proto\\V1";
 
 service FeedAPI {
-    rpc PostMessage(PostMessageRequest) returns (PostMessageResponse) {}
+    rpc PostMessage(PostMessageRequest) returns (PostMessageResponse) {
+        option (google.api.http) = {
+            post: "/v1/users/{user_id}/messages"
+            body: "message"
+        };
+    }
 
-    rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {}
+    rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {
+        option (google.api.http) = {
+            get: "/v1/users/{user_id}/messages"
+        };
+    }
 }
 
 message PostMessageRequest {
