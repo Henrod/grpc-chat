@@ -5,12 +5,17 @@ import (
 	"flag"
 	"log"
 
+	"google.golang.org/grpc/credentials"
+
 	pb "github.com/Henrod/chat-example-2/protogen"
 	"google.golang.org/grpc"
 )
 
+const certFile = "../creds/domain.crt"
+
 func main() {
-	dial, err := grpc.Dial("localhost:8000", grpc.WithInsecure())
+	creds, _ := credentials.NewClientTLSFromFile(certFile, "")
+	dial, err := grpc.Dial("localhost:8000", grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatal(err)
 	}

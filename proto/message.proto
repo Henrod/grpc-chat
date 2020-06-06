@@ -16,4 +16,5 @@ message Message {
     string body = 1;
     google.protobuf.Timestamp created_at = 2;
     string title = 3;
+    repeated string mentions = 4;
 }
