@@ -6,6 +6,8 @@ import (
 	"net"
 	"net/http"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+
 	"google.golang.org/grpc/credentials"
 
 	pb "github.com/Henrod/chat-example-2/protogen"
@@ -16,6 +18,7 @@ import (
 const (
 	certFile = "../creds/domain.crt"
 	keyFile  = "../creds/domain.key"
+	token    = "token"
 )
 
 func startHTTPServer() error {
@@ -24,12 +27,18 @@ func startHTTPServer() error {
 	defer cancel()
 
 	mux := runtime.NewServeMux()
-	opts := []grpc.DialOption{grpc.WithInsecure()}
+
+	creds, err := credentials.NewClientTLSFromFile(certFile, "")
+	if err != nil {
+		return err
+	}
+
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(creds)}
 	if err := pb.RegisterFeedAPIHandlerFromEndpoint(ctx, mux, "localhost:8000", opts); err != nil {
 		return err
 	}
 
-	return http.ListenAndServe("localhost:8001", mux)
+	return http.ListenAndServeTLS("localhost:8001", certFile, keyFile, mux)
 }
 
 func main() {
@@ -43,7 +52,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	s := grpc.NewServer(grpc.UnaryInterceptor(Metrics), grpc.Creds(creds))
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			metrics(),
+			auth(token),
+		)),
+		grpc.Creds(creds),
+	)
 	pb.RegisterFeedAPIServer(s, NewFeedAPI())
 
 	go func() {

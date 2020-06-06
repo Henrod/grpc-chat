@@ -15,7 +15,10 @@ const certFile = "../creds/domain.crt"
 
 func main() {
 	creds, _ := credentials.NewClientTLSFromFile(certFile, "")
-	dial, err := grpc.Dial("localhost:8000", grpc.WithTransportCredentials(creds))
+	dial, err := grpc.Dial("localhost:8000",
+		grpc.WithTransportCredentials(creds),
+		grpc.WithPerRPCCredentials(&auth{token: "token"}),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
