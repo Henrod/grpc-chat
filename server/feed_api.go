@@ -23,6 +23,8 @@ func (f *FeedAPI) PostMessage(
 	_ context.Context,
 	r *pb.PostMessageRequest,
 ) (*pb.PostMessageResponse, error) {
+	time.Sleep(time.Minute)
+
 	messages, ok := f.feed[r.GetUserId()]
 	if !ok {
 		messages = f.feed[r.GetUserId()]

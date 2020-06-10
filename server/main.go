@@ -5,6 +5,9 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 
@@ -61,6 +64,10 @@ func main() {
 	)
 	pb.RegisterFeedAPIServer(s, NewFeedAPI())
 
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+	defer signal.Stop(interrupt)
+
 	go func() {
 		log.Print("listening gRPC at localhost:8000")
 		if err = s.Serve(lis); err != nil {
@@ -68,8 +75,18 @@ func main() {
 		}
 	}()
 
-	log.Print("listening HTTP at localhost:8001")
-	if err = startHTTPServer(); err != nil {
-		log.Fatal(err)
-	}
+	go func() {
+		log.Print("listening HTTP at localhost:8001")
+		if err = startHTTPServer(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	<-interrupt
+
+	log.Print("received stop signal")
+	log.Print("gracefully shutting down")
+	s.GracefulStop()
+
+	log.Print("finished")
 }
