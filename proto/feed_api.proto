@@ -4,6 +4,7 @@ package proto.v1;
 
 import "message.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/field_mask.proto";
 
 option csharp_namespace = "Proto.V1";
 option go_package = "protov1";
@@ -39,6 +40,7 @@ message PostMessageResponse {
 
 message ListMessagesRequest {
     string user_id = 1;
+    google.protobuf.FieldMask fields = 2;
 }
 
 message ListMessagesResponse {

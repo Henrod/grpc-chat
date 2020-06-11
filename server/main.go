@@ -13,7 +13,7 @@ import (
 
 	"google.golang.org/grpc/credentials"
 
-	pb "github.com/Henrod/chat-example-2/protogen/v2"
+	pb "github.com/Henrod/chat-example-2/protogen"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
 )
@@ -36,7 +36,10 @@ func startHTTPServer() error {
 		return err
 	}
 
-	opts := []grpc.DialOption{grpc.WithTransportCredentials(creds)}
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(creds),
+		grpc.WithPerRPCCredentials(&auth{token: token}),
+	}
 	if err := pb.RegisterFeedAPIHandlerFromEndpoint(ctx, mux, "localhost:8000", opts); err != nil {
 		return err
 	}
@@ -58,11 +61,11 @@ func main() {
 	s := grpc.NewServer(
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			metrics(),
-			auth(token),
+			getAuth(token),
 		)),
 		grpc.Creds(creds),
 	)
-	pb.RegisterFeedAPIServer(s, NewFeedAPIV2())
+	pb.RegisterFeedAPIServer(s, NewFeedAPI())
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)

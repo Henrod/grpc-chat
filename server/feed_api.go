@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	"time"
+
+	"google.golang.org/genproto/protobuf/field_mask"
 
 	pb "github.com/Henrod/chat-example-2/protogen"
 
@@ -23,8 +24,6 @@ func (f *FeedAPI) PostMessage(
 	_ context.Context,
 	r *pb.PostMessageRequest,
 ) (*pb.PostMessageResponse, error) {
-	time.Sleep(time.Minute)
-
 	messages, ok := f.feed[r.GetUserId()]
 	if !ok {
 		messages = f.feed[r.GetUserId()]
@@ -47,7 +46,42 @@ func (f *FeedAPI) ListMessages(
 		return nil, status.Error(codes.NotFound, "user not found")
 	}
 
-	time.Sleep(time.Second)
+	messages, err := f.fields(messages, r.Fields)
+	if err != nil {
+		return nil, err
+	}
 
 	return &pb.ListMessagesResponse{Messages: messages}, nil
+}
+
+func (f *FeedAPI) fields(messages []*pb.Message, mask *field_mask.FieldMask) ([]*pb.Message, error) {
+	if mask == nil || len(mask.Paths) == 0 {
+		mask = &field_mask.FieldMask{
+			Paths: []string{"body"},
+		}
+	}
+
+	result := make([]*pb.Message, 0, len(messages))
+	for _, msg := range messages {
+		rmsg := &pb.Message{}
+
+		for _, path := range mask.Paths {
+			switch path {
+			case "body":
+				rmsg.Body = msg.Body
+			case "created_time":
+				rmsg.CreatedTime = msg.CreatedTime
+			case "title":
+				rmsg.Title = msg.Title
+			case "mentions":
+				rmsg.Mentions = msg.Mentions
+			default:
+				return nil, status.Errorf(codes.InvalidArgument, "invalid field: %v", path)
+			}
+		}
+
+		result = append(result, rmsg)
+	}
+
+	return result, nil
 }
