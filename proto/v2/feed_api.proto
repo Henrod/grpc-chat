@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package proto.v2;
+
+import "v2/message.proto";
+import "google/api/annotations.proto";
+
+option csharp_namespace = "Proto.V2";
+option go_package = "protov2";
+option java_multiple_files = true;
+option java_outer_classname = "FeedApiV2Proto";
+option java_package = "com.proto.v2";
+option objc_class_prefix = "PXX";
+option php_namespace = "Proto\\V2";
+
+service FeedAPI {
+    rpc ListMessages(ListMessagesRequest) returns (stream ListMessagesResponse) {
+        option (google.api.http) = {
+            get: "/v2/feeds/{feed_id}/messages"
+        };
+    }
+}
+
+message ListMessagesRequest {
+    string feed_id = 1;
+}
+
+message ListMessagesResponse {
+    Message message = 1;
+}

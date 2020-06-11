@@ -30,7 +30,7 @@ func (f *FeedAPI) PostMessage(
 		messages = f.feed[r.GetUserId()]
 	}
 
-	r.Message.CreatedAt = ptypes.TimestampNow()
+	r.Message.CreatedTime = ptypes.TimestampNow()
 
 	messages = append(messages, r.Message)
 	f.feed[r.GetUserId()] = messages

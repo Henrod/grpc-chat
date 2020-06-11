@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package proto.v2;
+
+option csharp_namespace = "Proto.V2";
+option go_package = "protov2";
+option java_multiple_files = true;
+option java_outer_classname = "MessageProto";
+option java_package = "com.proto.v2";
+option objc_class_prefix = "PXX";
+option php_namespace = "Proto\\V2";
+
+message Message {
+    string body = 1;
+}

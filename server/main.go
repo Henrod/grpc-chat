@@ -13,7 +13,7 @@ import (
 
 	"google.golang.org/grpc/credentials"
 
-	pb "github.com/Henrod/chat-example-2/protogen"
+	pb "github.com/Henrod/chat-example-2/protogen/v2"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
 )
@@ -62,7 +62,7 @@ func main() {
 		)),
 		grpc.Creds(creds),
 	)
-	pb.RegisterFeedAPIServer(s, NewFeedAPI())
+	pb.RegisterFeedAPIServer(s, NewFeedAPIV2())
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
